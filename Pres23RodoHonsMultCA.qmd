@@ -1,0 +1,9 @@
+---
+title: Presentation for 2023 honours correspondence analysis section
+format:
+  beamer:
+    embed-resources: true
+---
+
+# Introduction
+
