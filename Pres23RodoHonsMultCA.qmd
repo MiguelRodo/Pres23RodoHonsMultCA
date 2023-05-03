@@ -10,9 +10,32 @@ format:
 - Context: $\mathbf{Y}$ (counts)
   - Goal: Graphically display the relationships between the rows and columns
 
-```{r}
+:::: {.columns}
 
+::: {.column width="50%"}
+
+```{r}
+#| results: asis
+#| echo: false
+data("smoke", package = "ca")
+smoke |> knitr::kable()
 ```
+
+:::
+
+::: {.column width="50%"}
+
+```{r}
+#| echo: false
+plot(
+  ca(smoke), mass = TRUE, contrib = "absolute",
+  map = "rowprincipal", arrows = rep(TRUE, 2)
+  )
+```
+
+:::
+
+::::
 
 ## Example applications {.smaller}
 
