@@ -339,3 +339,47 @@ $$
 $$
 \symbf{S} = \symbf{D}_r^{-1/2}(\symbf{P} - \symbf{P}_{\mathrm{ind}} ) \symbf{D}_c^{-1/2}.
 $$
+
+## Motivation for this form of residual I: Count distribution
+
+- Consider the following residual:
+
+$$
+\frac{\mathrm{Observed}-\mathrm{Expected}}{\sqrt{\mathrm{Expected}}}
+$$
+
+- This is equal to a residual with mean 0 and unit variance if the data are Poisson distributed, as for the Poisson distribution, the mean is equal to the variance.
+<!-- \pause !-->
+
+  - Considering that we are dealing with abundance (e.g. count) data, the Poisson distribution seems appropriate.
+  - We are accounting for the mean-variance relationship.
+
+## Motivation for this form of residual II: The $\chi^2$ statistic
+
+- Now if we square the residuals, we get a $\chi^2$ statistic:
+
+$$
+\frac{(\mathrm{Observed}-\mathrm{Expected})^2}{\mathrm{Expected}}
+$$
+
+- This tracks the deviation from the model with mean $\mathrm{Expected}$ and variance $\mathrm{Expected}$.
+- We can calculate this for all the elements in the matrix $P$ under the assumption that $P$ arose under independent rows and columns.
+  - This yields the overall $\chi^2$ statistic when we add them up:
+
+$$
+\Chi^2 = \sum_{i=1}^I\sum_{j=1}^J \frac{(\mathrm{Observed}_{ij}-\mathrm{Expected}_{ij})^2}{\mathrm{Expected}_{ij}}
+$$
+
+## Role of independence assumption
+
+- The assumption of independence is likely not true, but that is in fact the point:
+  - We've created a way to highlight observation-variable (row-column) combinations that are more common than expected
+    - In particular, the abundance of the row or column is now cancelled out
+- We are *not* performing inference for a test of association between rows and columns
+- Rather, this deviation-from-independence information will be used to represent rows in a lower-dimensional space that we can then interpret
+
+## Views of correspondence analysis
+
+- There are two basic approaches to (or ways of developing) correspondence analysis:
+  - Matrix approximation
+  - Profile approximation
