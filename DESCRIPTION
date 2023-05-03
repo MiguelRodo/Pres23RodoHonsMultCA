@@ -1,8 +1,7 @@
 Package: Pres23RodoHonsMultCA
 Title: Presentation for 2023 honours correspondence analysis section
 Version: 0.0.0-1
-Authors@R: 
-    person("Miguel", "Rodo", , "miguel.rodo@uct.ac.za", role = c("aut", "cre"))
+Authors@R: person("Miguel", "Rodo", , "miguel.rodo@uct.ac.za", role = c("aut", "cre"))
 Maintainer: Miguel Rodo <miguel.rodo@uct.ac.za>
 Description: Presentation for 2023 honours correspondence analysis section
 License: CC BY 4.0

@@ -1,23 +1,159 @@
 ---
-title: Presentation for 2023 honours correspondence analysis section
+title: Correspondence analysis
 format:
-  revealjs:
+  beamer:
     embed-resources: true
+    include-in-header:
+      text: |
+        \usepackage{mathpazo}
+        \usepackage{unicode-math}
+    classoption: "aspectratio=169"
+bibliography: Bib23RodoHonsMultCA.bib
 ---
 
 ## Introduction to correspondence analysis (CA)
 
-- Context: $\mathbf{Y}$ (counts)
-  - Goal: Graphically display the relationships between the rows and columns
+\vspace{0.5cm}
+
+- Context: $\symbf{Y}$ (abundance)
+  - Goal: Graphically display the relationships between and/or within the rows and columns
+
+<!-- \pause !-->
+
+:::: {.columns}
+
+::: {.column width="45%" text-align="center"}
+
+\begin{center} 
+
+We go from this dataset:
+
+\end{center}
+
+\vspace{0.4cm}
+
 
 ```{r}
-
+#| results: asis
+#| echo: false
+data("smoke", package = "ca")
+smoke |> knitr::kable()
 ```
+
+:::
+
+::: {.column width="2.5%"}
+
+:::
+
+::: {.column width="52.5%" text-align="center"}
+
+\begin{center}
+to this plot:
+\end{center}
+
+\vspace{-1cm}
+
+```{r}
+#| echo: false
+#| results: asis
+path_pdf <- projr::projr_path_get("cache", "p-cover.pdf")
+pdf(path_pdf, width = 3.5, height = 3.5)
+ca_obj <- ca::ca(smoke)
+plot(
+  ca::ca(smoke), mass = TRUE, contrib = "absolute",
+  map = "symmetric", arrows = rep(TRUE, 2)
+  )
+suppressMessages(suppressWarnings(invisible(dev.off())))
+
+pander::pandoc.image(path_pdf)
+```
+
+:::
+
+::::
+
+::: {.comment}
+- So, the key thing so far is that the rows are not displayed in terms of how similar they are overall
+  - Rather, they're displayed in terms of the similarity of their profiles
+:::
+
+## Introduction to correspondence analysis (CA)
+
+\vspace{0.5cm}
+
+- Context: $\symbf{Y}$ (abundance)
+  - Goal: Graphically display the relationships between and/or within the rows and columns
+
+:::: {.columns}
+
+::: {.column width="45%" text-align="center"}
+
+\begin{center} 
+
+We go from this dataset:
+
+\end{center}
+
+\vspace{0.4cm}
+
+
+```{r}
+#| results: asis
+#| echo: false
+smoke_dem <- smoke
+for (i in seq_len(nrow(smoke_dem))) {
+  smoke_rep <- as.matrix(smoke_dem)[i, ] / sum(smoke_dem[i, ])
+  for (j in seq_len(ncol(smoke_dem))) {
+    smoke_dem[i, j] <- smoke_rep[j]
+  }
+}
+smoke_dem |> round(2) |> knitr::kable()
+```
+
+:::
+
+::: {.column width="2.5%"}
+
+:::
+
+::: {.column width="52.5%" text-align="center"}
+
+\begin{center}
+to this plot:
+\end{center}
+
+\vspace{-1cm}
+
+```{r}
+#| echo: false
+#| results: asis
+path_pdf <- projr::projr_path_get("cache", "p-cover.pdf")
+pdf(path_pdf, width = 3.5, height = 3.5)
+ca_obj <- ca::ca(smoke)
+plot(
+  ca::ca(smoke), mass = TRUE, contrib = "absolute",
+  map = "symmetric", arrows = rep(TRUE, 2)
+  )
+suppressMessages(suppressWarnings(invisible(dev.off())))
+
+pander::pandoc.image(path_pdf)
+```
+
+:::
+
+::::
+
+::: {.comment}
+- So, the key thing so far is that the rows are not displayed in terms of how similar they are overall
+  - Rather, they're displayed in terms of the similarity of their profiles
+:::
+
 
 ## Example applications {.smaller}
 
 **Datasets**
-asdfasdf
+
 - Rows are various dams, and columns are counts of waterbird species
 - Rows are various immune compartments (e.g. blood, spleen, lymph), and columns are frequencies of immune cell types (e.g. T cells, B cells, NK cells)
 - Rows are company brands (e.g. Cadbury, Beacon, Lindt), and columns are consumer ratings on a 1-5 scale (e.g. quality, price, taste)
@@ -28,65 +164,178 @@ asdfasdf
 - Natural zero (i.e. zero means literally nothing and not simply that two quantities are equal, for example)
 - Same units (e.g. counts all in thousands)
 
-## Correspondence matrix, $\mathbf{P}$ {.smaller}
+<!-- \pause !-->
 
-- Suppose that we have some matrix $X:I \times J$ where each element 
+The key property of the data is that proportions make sense throughout.
+
+## Correspondence matrix, $\symbf{P}$ {.smaller}
+
+- Suppose that we have some matrix $\symbf{X}:I \times J$ where each element 
   - Rows can be thought of as observations and columns as variables
 
-- The correspondence matrix $\mathbf{P}:I \times J$ is the matrix of overall proportions where
+- The correspondence matrix $\symbf{P}:I \times J$ is the matrix of overall proportions where
+
 $$
 P_{ij}= \frac{x_{ij}}{\sum_{i=1}^I \sum_{j=1}^J x_{ij}} = \frac{x_{ij}}{n}
 $$
 
+<!-- \pause !-->
 
-## Correspondence analysis as matrix approximation
+:::: {.columns}
 
-- Let $\mathbf{r}$ be the vector of row totals, i.e. $r_i=\sum_{j=1}^n P_{ij} = \mathbf{P} \mathbf{1}$
-- Let $\mathbf{c}$ be the vector of column totals, i.e. $c_j=\sum_{i=1}^m P_{ij} = \mathbf{P}' \mathbf{1}$
-- Let $\mathbf{D}_r$ be the diagonal matrix of row totals, i.e. $D_{r_{ii}}=r_i$ and $\mathbf{D}_c$ the diagonal matrix of column totals
+::: {.column width="45%" text-align="center"}
 
-::: {.callout-important}
-- Correspondence analysis can be viewed as a weighted least squared problem to select a low-rank $\hat{P}$ such that the following is minimised:
+\begin{center} 
 
-\begin{equation*}
-$\sum_{i=1}^I\sum_{j=1}^J \frac{(p_{ij} - \hat{p}_{ij})^2}{r_ic_j}$, \text{or equivalently} \\
-\mathrm{tr}[(\mathbf{D}_r^{-1/2}(\mathbf{P} - \hat{\mathbf{P}})\mathbf{D}_c^{-1/2})(\mathbf{D}_r^{-1/2}(\mathbf{P} - \hat{\mathbf{P}})\mathbf{D}_c^{-1/2})']
-\end{equation*}
+We go from $\symbf{X}$
+
+\end{center}
+
+\vspace{0.05cm}
+
+
+```{r}
+#| results: asis
+#| echo: false
+smoke |> knitr::kable()
+```
 
 :::
 
-## $\chi^2$ distance
+::: {.column width="2.5%"}
 
-- The $\chi^2$ distance is a measure for comparing two entities
-- For example:
-  - Comparing two histograms with equal bin placements
-  - Comparing two densities
-- In our case, we're comparing the observed counts (which are like a two-way histogram) and expected counts
-- Formula:
-  - $\sum_{ij}\frac{(x_{ij} - e_{ij})^2}{e_{ij}}$
+:::
+
+::: {.column width="52.5%" text-align="center"}
+
+\begin{center}
+
+to $\symbf{P}$
+
+\end{center}
+
+\vspace{0.05cm}
 
 
-## Physical interpretation
+```{r}
+#| echo: false
+#| results: asis
+smoke_dem <- smoke
+for (i in seq_len(nrow(smoke_dem))) {
+  smoke_rep <- as.matrix(smoke_dem)[i, ] / sum(smoke_dem[i, ])
+  for (j in seq_len(ncol(smoke_dem))) {
+    smoke_dem[i, j] <- smoke_rep[j]
+  }
+}
+n <- sum(colSums(as.matrix(smoke)))
+P <- (smoke / n)
+P |> round(2) |> knitr::kable()
+```
 
-- The row and column weights ($\mathbf{r}$ and $\mathbf{c}$) are termed *masses*
+:::
+
+::::
+
+## Independence of rows and columns
+
+- Let $\symbf{r}$ be the vector of row totals, i.e. $r_i=\sum_{j=1}^J P_{ij} = \symbf{P} \symbf{1}$
+- Let $\symbf{c}$ be the vector of column totals, i.e. $c_j=\sum_{i=1}^I P_{ij} = \symbf{P}' \symbf{1}$
+- Then if the rows are independent of the cells, we have that
+
+\begin{align*}
+p_{ij} &= r_ic_j,
+\implies \symbf{P}_{\mathrm{ind}} = \symbf{r}\symbf{c}'
+\end{align*}
+
+```{r}
+#| echo: false
+#| results: asis
+r_vec <- matrix(rowSums(P), ncol = 1)
+c_vec <- matrix(colSums(P), ncol = 1)
+P_ind <- r_vec %*% t(c_vec)
+P_ind_disp <- P
+for (i in seq_len(nrow(P))) {
+  for (j in seq_len(ncol(P))) {
+    P_ind_disp[i, j] <- P_ind[i,j] |> round(2)
+  }
+}
+knitr::kable(P_ind_disp)
+```
+
+## Matrix of residuals
+- Under the assumption of independence, we can calculate residuals:
+
+$$
+\symbf{P} - \symbf{P}_{\mathrm{ind}} = \symbf{P} - \symbf{r}\symbf{c}'.
+$$
+
+<!-- \pause !-->
+
+- Continuing the smoking example, we then have
+
+:::: {.columns}
+
+::: {.column width="45%" text-align="center"}
+
+\begin{center} 
+
+$\symbf{P}$
+
+\end{center}
+
+\vspace{0.05cm}
 
 
-## Inertia
+```{r}
+#| results: asis
+#| echo: false
+P |> round(2) |> knitr::kable()
+```
 
-Source: https://en.wikipedia.org/wiki/Correspondence_analysis
+:::
 
-- Inertia isa  weighted covariance
-  - Sum of squared singular values is the total inertaa of the data table ($S$)
-  - What is this equal to?
-    - Sum of all elements in $S$, squared
-  - 
+::: {.column width="2.5%"}
 
-## CA vs PCA 
+:::
 
-- Association between rows and columns
-  - PCA has that?
-- Interested in profiles
-  - PCA might standardise the variables, but not the rows as well
-- 
+::: {.column width="52.5%" text-align="center"}
 
-## Examples of contexts for correspondence analysis {.smaller}
+\begin{center}
+
+$\symbf{P} - \symbf{r}\symbf{c}'$
+
+\end{center}
+
+\vspace{0.05cm}
+
+
+```{r}
+#| echo: false
+#| results: asis
+S <- P - P_ind
+S |> round(3) |> knitr::kable()
+```
+
+:::
+
+::::
+
+<!-- \pause !-->
+
+- Residuals are naturally larger for the more abundant rows (employee ranks)
+
+## Standardised residuals
+
+- To avoid the more abundant rows and columns from dominating downstream analyses, we normalise by row and column size.
+- For each residual $P_{ij} - P_{\mathrm{ind}_{ij}}$, we standardise by 
+
+$$
+\frac{P_{ij} - P_{\mathrm{ind}_{ij}}}{\sqrt{r_ic_j}} = \frac{P_{ij} - r_ic_j}{\sqrt{r_ic_j}}
+$$
+
+- Define the diagonal matrices $\symbf{D}_r=\mathrm{diag}(\symbf{r})$ and $\symbf{D}_c=\mathrm{diag}(\symbf{c})$.
+- We then have that the matrix of standardised residuals is given by
+
+$$
+\symbf{S} = \symbf{D}_r^{-1/2}(\symbf{P} - \symbf{P}_{\mathrm{ind}} ) \symbf{D}_c^{-1/2}.
+$$
