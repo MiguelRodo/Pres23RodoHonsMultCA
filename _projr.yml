@@ -13,6 +13,7 @@ directories:
     archive: yes
     path: docs
     output: yes
+    ignore: false
 build:
   dev-output: yes
   package: no
