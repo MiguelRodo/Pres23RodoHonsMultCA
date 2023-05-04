@@ -670,7 +670,7 @@ pander::pandoc.image("_data_raw/img/ca-multilevel_4.png")
 
 ```{r}
 #| results: asis
-pander::pandoc.image("_data_raw/img/ca-multilevel_4.png")
+pander::pandoc.image("_data_raw/img/summary.png")
 ```
 
 
