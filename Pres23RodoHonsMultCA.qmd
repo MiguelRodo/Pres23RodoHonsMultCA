@@ -57,8 +57,8 @@ to this plot:
 ```{r}
 #| echo: false
 #| results: asis
-path_pdf <- projr::projr_path_get("cache", "p-cover.pdf")
-pdf(path_pdf, width = 3.5, height = 3.5)
+path_pdf_cover <- projr::projr_path_get("cache", "p-cover.pdf")
+pdf(path_pdf_cover, width = 3.5, height = 3.5)
 ca_obj <- ca::ca(smoke)
 plot(
   ca::ca(smoke), mass = TRUE, contrib = "absolute",
@@ -66,7 +66,7 @@ plot(
   )
 suppressMessages(suppressWarnings(invisible(dev.off())))
 
-pander::pandoc.image(path_pdf)
+pander::pandoc.image(path_pdf_cover)
 ```
 
 :::
@@ -376,10 +376,304 @@ $$
   - We've created a way to highlight observation-variable (row-column) combinations that are more common than expected
     - In particular, the abundance of the row or column is now cancelled out
 - We are *not* performing inference for a test of association between rows and columns
-- Rather, this deviation-from-independence information will be used to represent rows in a lower-dimensional space that we can then interpret
+- Rather, this deviation-from-independence information (i.e. $\symbf{S}$) will be used to represent rows in a lower-dimensional space that we can then interpret
+
+## Correspondence analysis as PCA on a transformed matrix
+
+- What we've done up until this point is, essentially, transform the data appropriately
+  - Calculated proportions ($\symbf{X}\rightarrow \symbf{P}$)
+  - "Centred" it ($\symbf{P}-\symbf{r}\symbf{c}'$)
+  - "Standardised" it ($\symbf{S} = \symbf{D}_r^{-1/2}(\symbf{P}-\symbf{r}\symbf{c}')\symbf{D}_c^{-1/2}$)
+- We then use the SVD to obtain a low-rank approximation to $\symbf{S}$
+  - Find the low-rank $s<\min(I-1,J-1)$ rank matrix $\tilde{S}$ such that the sum of squared differences is minimised
+    - $\tilde{S}=\sum_{k=1}^{s}\lambda_i\symbf{u}_k\symbf{v}_k'$
+  - PCA creates the same approximating matrix as the SVD, and so CA is essentially PCA on a transformed matrix
+- Since this is an exploratory technique, we plot the points (transformed again) in a biplot
+  - We have various options for how exactly to calculate the points, which we'll discuss
 
 ## Views of correspondence analysis
 
-- There are two basic approaches to (or ways of developing) correspondence analysis:
+- The previous description of CA is a bit handwavy, but serves to (help) give an intuition for what CA is doing
+- There are two formal approaches to (or ways of developing) correspondence analysis:
   - Matrix approximation
   - Profile approximation
+
+## Matrix approximation view of correspondence analysis I
+
+- The matrix approximation view to CA regards it as solving the following weighted least squares problem:
+
+:::{.callout-important icon="false"}
+## Matrix approximation angle on CA
+
+- Find a reduced rank matrix  $\hat{\symbf{P}}$ such that
+
+$$
+\sum_{i=1}^I\sum_{j=1}^J \frac{(p_{ij}-\hat{p}_{ij})^2}{r_ic_j} 
+$$
+
+is minimised.
+
+:::
+
+- We upweight errors arising from more commonly observed rows and cells.
+  - This makes sense from the mean-variance relationship we mentioned before.
+
+## Matrix approximation view of correspondence analysis II
+
+\small
+
+Since 
+
+$$
+\sum_{i=1}^I\sum_{j=1}^J \frac{(p_{ij}-\hat{p}_{ij})^2}{r_ic_j}  = \mathrm{tr}[(\symbf{D}_r^{-1/2}(\symbf{P} - \hat{\symbf{P}})\symbf{D}_c^{-1/2})(\symbf{D}_r^{-1/2}(\symbf{P} - \hat{\symbf{P}})\symbf{D}_c^{-1/2})'],
+$$
+
+we have that 
+
+
+\begin{align*}
+\sum_{i=1}^I\sum_{j=1}^J \frac{(p_{ij}-\hat{p}_{ij})^2}{r_ic_j}  &= \mathrm{tr}[(\symbf{D}_r^{-1/2}\symbf{P}\symbf{D}_c^{-1/2} - \symbf{D}_r^{-1/2}\hat{\symbf{P}}\symbf{D}_c^{-1/2})(\symbf{D}_r^{-1/2}\symbf{P}\symbf{D}_c^{-1/2} - \symbf{D}_r^{-1/2}\hat{\symbf{P}}\symbf{D}_c^{-1/2})'], \\
+&=
+\mathrm{tr}[(\symbf{D}_r^{-1/2}\symbf{P}\symbf{D}_c^{-1/2} - \hat{\symbf{P}}^{\ast})(\symbf{D}_r^{-1/2}\symbf{P}\symbf{D}_c^{-1/2} - \hat{\symbf{P}}^{\ast})'],
+\end{align*},
+
+where $\hat{\symbf{P}}^{\ast} =  \symbf{D}_r^{-1/2}\hat{\symbf{P}}\symbf{D}_c^{-1/2}$.
+
+\vspace{-0.2cm}
+
+- Thus the weighted least squares problem is essentially the same as an unweighted least squares problem, which we know how to solve - using the SVD on $\symbf{D}_r^{-1/2}\symbf{P}\symbf{D}_c^{-1/2}$.
+
+## Results from matrix approximation view I
+
+\normalsize
+
+1. The reduced rank $s$ approximation to $\symbf{P}$ is given by 
+
+$$
+\sum_{k=1}^s\tilde{\lambda}_k(\symbf{D}_r^{1/2}\tilde{\symbf{u}}_k)(\symbf{D}_c^{1/2}\tilde{\symbf{v}}_k)',
+$$
+
+where $\tilde{\lambda}_k$, $\tilde{\symbf{u}}_k$ and $\tilde{\symbf{v}}_k$ arise from the SVD of $\symbf{D}_r^{-1/2}\symbf{P}\symbf{D}_c^{-1/2}$ and the approximation error is $\sum_{k=s+1}^J\tilde{\lambda}_k^2$.
+
+2. We always have that 
+
+$$
+\tilde{\lambda}_k(\symbf{D}_r^{1/2}\tilde{\symbf{u}}_1)(\symbf{D}_c^{1/2}\tilde{\symbf{v}}_1) = \symbf{r}\symbf{c}'.
+$$
+
+## Results from matrix approximation view II
+
+3. The reduced rank $K>1$ approximation to $\symbf{P}-\symbf{r}\symbf{c}'$ is given by 
+
+$$
+\sum_{k=1}^K\lambda_k(\symbf{D}_r^{1/2}\symbf{u}_k)(\symbf{D}_c^{1/2}\symbf{v}_k)',
+$$
+
+where  $\lambda_k$, $\symbf{u}_k$ and $\symbf{v}_k$ arise from the SVD of $\symbf{D}_r^{-1/2}(\symbf{P}-\symbf{r}\symbf{c}')\symbf{D}_c^{-1/2}$. 
+
+4.  $\symbf{D}_r^{-1/2}\symbf{P}\symbf{D}_c^{-1/2}$ and  $\symbf{D}_r^{-1/2}(\symbf{P}-\symbf{r}\symbf{c}')\symbf{D}_c^{-1/2}$ share singular vectors and singular values, in that $\tilde{\lambda}_{k+1}= \lambda_k$, $\tilde{u}_{k+1}= u_k$ and $\tilde{v}_{k+1}= v_k$.
+
+## Comment on the previous results
+
+- It's a lot - but I mention them because they shed light on a couple of things in CA, rather than that you memorise them all.
+- The main point is that CA is an application of PCA on a transformed matrix, which is equivalent to a least-squares problem whose solution we find by the singular -vectors and -values of the matrix of standardised residuals, $\symbf{S} = \symbf{D}_r^{-1/2}(\symbf{P}-\symbf{r}\symbf{c}')\symbf{D}_c^{-1/2}$. 
+
+## Inertia
+
+- For $\symbf{S} = \symbf{D}_r^{-1/2}(\symbf{P}-\symbf{r}\symbf{c}')\symbf{D}_c^{-1/2}$, total inertia is the weighted sum of squares of residuals:
+
+$$
+\mathrm{tr}[\symbf{S}\symbf{S}'] = \sum_i\sum_j\frac{(p_{ij} - r_ic_j)^2}{r_ic_j} = \sum_{k=1}^{J-1}\lambda_k^2 
+$$
+
+- $\lambda_k$ is the $k$-th singular value of $\symbf{S}$
+  - This follows from the fact that $\symbf{r}\symbf{c}'$ is in fact the best rank-one approximation to $\symbf{P}$
+    - It is therefore the first term in the SVD approximation, and the rank one SVD matrice's approximation error is equal to $\sum_{k=2}^{J}\tilde{\lambda}_k^2 = \sum_{k=1}^{J-1}\lambda_k^2$.
+- The inertia captured by the first $s$ components represents the variation captured in $\symbf{S}$, and the proportion of variation captured is given by $(\sum_{k=1}^{s}\lambda_k^2)/(\sum_{k=1}^{J-1}\lambda_k^2)$.
+
+```{r}
+#| echo: false
+#| eval: false
+data_tidy_smoke_long_init <- smoke |>
+  dplyr::mutate(Rank = rownames(smoke)) |>
+  tidyr::pivot_longer(
+    cols = none:heavy,
+    names_to = "Smoking habit",
+    values_to = "Count"
+  )
+data_tidy_smoke_long <- purrr::map_df(
+  seq_len(nrow(data_tidy_smoke_long_init)), function(i) {
+    data_row <- data_tidy_smoke_long_init[i, ]
+    purrr::map_df(seq_len(data_row$Count), function(j) {
+      data_row[, c("Rank", "Smoking habit")]
+  })
+})
+data_tidy_smoke_long <- data_tidy_smoke_long |>
+  dplyr::mutate(
+    Rank = factor(
+      data_tidy_smoke_long$Rank,
+      c("SM", "JM", "SE", "JE", "SEC"),
+      ordered = TRUE
+      ),
+    `Smoking habit` = factor(
+      data_tidy_smoke_long$`Smoking habit`,
+      c("none", "light", "medium", "heavy"),
+      ordered = TRUE
+      )
+  ) |>
+  dplyr::arrange(Rank)
+```
+
+## Examinig the raw data using CA concepts
+
+![](_data_raw/img/smoke_example_intro.png)
+
+## Calculating the solution to the least-squares problem
+
+![](_data_raw/img/smoke_example.png)
+
+## Displaying the results of a correspondence analysis
+
+- We've discussed the first three steps in performing CA:
+  1. Calculating the matrix of standardised residuals, $\symbf{S} = \symbf{D}_r^{-1/2}(\symbf{P} - \symbf{r}\symbf{c}')\symbf{D}_c^{-1/2}$.
+  2. Calculating SVD of this (to obtain its least-squares approximation).
+  3. Assessing the quality of the dimensionality reduction (via inertia).
+
+- We now turn our attention to to displaying the rows and columns:
+
+\centering
+
+\vspace{-1.95cm}
+
+```{r}
+#| echo: false
+#| results: asis
+#| eval: true
+pander::pandoc.image(path_pdf_cover)
+```
+
+## Choosing coordinate scales
+
+- A biplot is a graphical display of a matrix $\symbf{X}_{m \times n}$ such that
+
+$$
+\symbf{X}_{m\times n} = \symbf{F}_{m\times k}(\symbf{G}_{n \times k})' \text{ for } k \leq \min(m, n),
+$$
+
+where each row of $\symbf{F}$ is a lower-dimensional representation of a row in $\symbf{X}$ and each column of $\symbf{G}$ is a lower-dimensional representation of a column in $\symbf{X}$.
+
+- Here we term $\symbf{F}$ and $\symbf{G}$ the *row* and *column* coordinates, respectively.
+
+- Clearly, in our case $\symbf{X}=\symbf{S}=\symbf{D}_r^{-1/2}(\symbf{P} - \symbf{r}\symbf{c}')\symbf{D}_c^{-1/2}$.
+
+## Principal vs standard coordinates
+
+- We need to choose the scaling for our row coordinates. Typical choices:
+  - *Principal* coordinates:
+    - Rows: $\symbf{F} = \symbf{D}_r^{-1/2}\symbf{U}\symbf{\Lambda}$
+    - Columns: $\symbf{G} = \symbf{D}_c^{-1/2}\symbf{V}\symbf{\Lambda}$
+  - *Standard* coordinates: 
+    - Rows: $\symbf{F} = \symbf{D}_r^{-1/2}\symbf{U}$
+    - Columns: $\symbf{G} = \symbf{D}_c^{-1/2}\symbf{V}$
+- When rows are plotted using principal coordinates, the $\chi^2$ distance between the rows is optimally displayed. Similarly for columns.
+
+## Symmetric vs asymmetric biplots
+
+- In symmetric biplots, the both rows and columns are plotted using principal coordinates, or both rows and columns are plotted using standard coordinates.
+  - This is great for displaying relationships between rows, or between columns. But:
+    - Relationships between rows and columns are not necessarily displayed correctly.
+    - It's not a true biplot, as $\symbf{X}$ is not even approximately equal to $\symbf{F}\symbf{G}'$. 
+- In asymmetric biplots, one uses principal coordinates and the other uses standard coordinates.
+  - The motivation is that the relationships between rows and columns are more accurately displayed.
+  - However:
+    - The standard and principal coordinates may be on fairly different scales, depending on the size of the singular values.
+    - Neither distances between rows nor distances between columns are optimally displayed.
+- However, at the end of the day it's all quite fuzzy as even principal coordinates are approximations.
+  - It seems to me like dividing $\Lambda$ up between the row and column coordinates (e.g. $\Lambda^{0.5}$ for both) is the best option unless you have a particular interest in either the rows or columns.
+
+## Terminology for scaling choices:
+
+- Both principal: symmetric 
+- Row principal and column standard: row-principal
+- Column principal and row standard: column-principal
+
+## `ca.plot` function
+
+```{r}
+?plot.ca
+```
+
+## Example: symmetric plot
+
+```{r}
+#| results: asis
+pander::pandoc.image("_data_raw/img/ca_example_2.png")
+```
+
+## Example: asymmetric plot I
+
+```{r}
+#| results: asis
+pander::pandoc.image("_data_raw/img/ca_example-asymmetric_biplots_1.png")
+```
+
+## Example: asymmetric plot II
+
+```{r}
+#| results: asis
+pander::pandoc.image("_data_raw/img/ca_example-asymmetric_biplots_2.png")
+```
+
+## Example: asymmetric plot III
+
+```{r}
+#| results: asis
+pander::pandoc.image("_data_raw/img/ca_example-asymmetric_biplots_2.png")
+```
+
+## Example: quality of approximation
+
+```{r}
+#| results: asis
+pander::pandoc.image("_data_raw/img/ca_example-quality.png")
+```
+
+## Multiple correspondence analysis (MCA)
+
+```{r}
+#| results: asis
+pander::pandoc.image("_data_raw/img/ca-multilevel_1.png")
+```
+
+## MCA: example introduction
+
+```{r}
+#| results: asis
+pander::pandoc.image("_data_raw/img/ca-multilevel_2.png")
+```
+
+## MCA: example application
+
+```{r}
+#| results: asis
+pander::pandoc.image("_data_raw/img/ca-multilevel_3.png")
+```
+
+## MCA: example plot
+
+```{r}
+#| results: asis
+pander::pandoc.image("_data_raw/img/ca-multilevel_4.png")
+```
+
+## Summary
+
+```{r}
+#| results: asis
+pander::pandoc.image("_data_raw/img/ca-multilevel_4.png")
+```
+
+
+
+
+

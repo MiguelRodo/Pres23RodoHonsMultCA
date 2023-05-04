@@ -4,7 +4,6 @@
 .RData
 .Ruserdata
 
-_data_raw/**/*
 
 
 _tmp/**/*
@@ -17,5 +16,8 @@ _archive/**/*
 
 
 docs/**/*
+
+
+_tmp/_tmp/**/*
 
 

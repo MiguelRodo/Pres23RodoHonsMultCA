@@ -4,7 +4,6 @@
 ^\.Rproj\.user$
 
 ^LICENSE\.md$
-^_data_raw
 
 
 ^_tmp
@@ -17,5 +16,8 @@
 
 
 ^docs
+
+
+^_tmp/_tmp
 
 
