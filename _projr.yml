@@ -20,5 +20,5 @@ build:
   git:
     commit: yes
     add-untracked: yes
-    push: no
+    push: yes
 
