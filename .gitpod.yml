@@ -3,15 +3,10 @@ image:
   file: .gitpod.Dockerfile
 
 tasks:
-  - name: Script Task
-    init: echo 'init script' # runs during prebuild => https://www.gitpod.io/docs/configure/projects/prebuilds
-    command: echo 'start script'
   - name: Configure radian # required as home directory is not saved between builds
     command: |
       echo "options(radian.editing_mode = 'vi')" > ~/.radian_profile
       echo "options(radian.auto_match = FALSE)" >> ~/.radian_profile
-  - name: "Test again"
-    command: echo "Because I say so"
 
 # List the ports to expose. Learn more: https://www.gitpod.io/docs/configure/workspaces/ports
 ports:
