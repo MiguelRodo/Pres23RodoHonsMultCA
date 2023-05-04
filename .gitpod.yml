@@ -7,6 +7,9 @@ tasks:
     command: |
       echo "options(radian.editing_mode = 'vi')" > ~/.radian_profile
       echo "options(radian.auto_match = FALSE)" >> ~/.radian_profile
+  - name: Have fune
+    command: |
+      echo "I am having a BLAST"
 
 # List the ports to expose. Learn more: https://www.gitpod.io/docs/configure/workspaces/ports
 ports:
