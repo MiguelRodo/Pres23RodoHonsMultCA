@@ -8,6 +8,8 @@ tasks:
     command: echo 'start script'
   - name: Set up radian # required as home directory is not saved between builds
     command: scripts/shell/radian.sh
+  - name: "Test again"
+    command: echo "Because I say so"
     
 
 # List the ports to expose. Learn more: https://www.gitpod.io/docs/configure/workspaces/ports
